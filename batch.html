@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Image Converter - WebP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .input-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .progress-section {
+            margin-top: 30px;
+            display: none;
+        }
+        .progress-section.show {
+            display: block;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .results-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .status-success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-failed {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .status-pending {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .log-section {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Batch Image to WebP Converter</h1>
+            <p>Convert multiple product images to WebP format automatically</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <h3>📋 Item Numbers (One per line)</h3>
+                <textarea id="itemNumbers" placeholder="Enter item numbers, one per line:
+2212
+2224
+2232
+5012
+4641"></textarea>
+                
+                <div class="controls">
+                    <button class="btn-primary" onclick="startBatchConversion()">
+                        🚀 Start Batch Conversion
+                    </button>
+                    <button class="btn-secondary" onclick="clearAll()">
+                        🗑️ Clear All
+                    </button>
+                    <button class="btn-success" id="downloadBtn" onclick="downloadAll()" style="display:none;">
+                        💾 Download All WebP
+                    </button>
+                </div>
+            </div>
+            
+            <div class="progress-section" id="progressSection">
+                <h3>📊 Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalItems">0</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="successCount" style="color: #28a745;">0</div>
+                        <div class="stat-label">Successful</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="failedCount" style="color: #dc3545;">0</div>
+                        <div class="stat-label">Failed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pendingCount" style="color: #ffc107;">0</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                
+                <h3>📝 Conversion Log</h3>
+                <div class="log-section" id="logSection"></div>
+                
+                <h3>📋 Results</h3>
+                <table class="results-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Item #</th>
+                            <th>Status</th>
+                            <th>Size</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://image-to-webp-converter-production.up.railway.app/convert';
+        const JOHNSENS_BASE = 'https://www.johnsens.com';
+        
+        let conversionResults = [];
+        let isConverting = false;
+
+        function log(message, type = 'info') {
+            const logSection = document.getElementById('logSection');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${timestamp}] ${message}`;
+            logSection.appendChild(entry);
+            logSection.scrollTop = logSection.scrollHeight;
+        }
+
+        function updateStats(total, success, failed, pending) {
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('successCount').textContent = success;
+            document.getElementById('failedCount').textContent = failed;
+            document.getElementById('pendingCount').textContent = pending;
+            
+            const progress = total > 0 ? ((success + failed) / total * 100).toFixed(0) : 0;
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = progress + '%';
+            progressFill.textContent = progress + '%';
+        }
+
+        function addResultRow(itemNumber, status, size, webpData) {
+            const tbody = document.getElementById('resultsBody');
+            const row = tbody.insertRow();
+            
+            row.innerHTML = `
+                <td>${itemNumber}</td>
+                <td class="status-${status}">${status.toUpperCase()}</td>
+                <td>${size || '-'}</td>
+                <td>
+                    ${status === 'success' ? 
+                        `<button onclick="downloadSingle('${itemNumber}')">Download</button>` : 
+                        '-'}
+                </td>
+            `;
+        }
+
+        async function searchProductImage(itemNumber) {
+            // For demo, using a pattern-based approach
+            // In production, you'd scrape the actual website
+            const imageUrl = `https://cdn11.bigcommerce.com/s-fg8rw4u4uq/images/stencil/1280x1280/products/32/189/${itemNumber}__05798.1515075711.png?c=2`;
+            return imageUrl;
+        }
+
+        async function convertImage(itemNumber) {
+            try {
+                log(`🔍 Searching for item ${itemNumber}...`);
+                const imageUrl = await searchProductImage(itemNumber);
+                
+                log(`🔄 Converting ${itemNumber} to WebP...`);
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imageUrl, quality: 80 })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ Successfully converted ${itemNumber}`);
+                    return { success: true, data, itemNumber };
+                } else {
+                    throw new Error('Conversion failed');
+                }
+            } catch (error) {
+                log(`❌ Failed to convert ${itemNumber}: ${error.message}`);
+                return { success: false, error: error.message, itemNumber };
+            }
+        }
+
+        async function startBatchConversion() {
+            if (isConverting) return;
+            
+            const textarea = document.getElementById('itemNumbers');
+            const items = textarea.value.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            if (items.length === 0) {
+                alert('Please enter at least one item number');
+                return;
+            }
+            
+            isConverting = true;
+            conversionResults = [];
+            
+            // Show progress section
+            document.getElementById('progressSection').classList.add('show');
+            document.getElementById('resultsBody').innerHTML = '';
+            document.getElementById('logSection').innerHTML = '';
+            
+            log(`🚀 Starting batch conversion for ${items.length} items...`);
+            
+            let success = 0, failed = 0;
+            
+            for (let i = 0; i < items.length; i++) {
+                const itemNumber = items[i];
+                updateStats(items.length, success, failed, items.length - success - failed);
+                
+                const result = await convertImage(itemNumber);
+                conversionResults.push(result);
+                
+                if (result.success) {
+                    success++;
+                    addResultRow(itemNumber, 'success', 
+                        (result.data.size / 1024).toFixed(2) + ' KB', 
+                        result.data);
+                } else {
+                    failed++;
+                    addResultRow(itemNumber, 'failed', null, null);
+                }
+                
+                updateStats(items.length, success, failed, items.length - success - failed);
+                
+                // Delay between requests
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            log(`✨ Batch conversion complete! Success: ${success}, Failed: ${failed}`);
+            
+            if (success > 0) {
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+            }
+            
+            isConverting = false;
+        }
+
+        function downloadSingle(itemNumber) {
+            const result = conversionResults.find(r => r.itemNumber === itemNumber && r.success);
+            if (result) {
+                const link = document.createElement('a');
+                link.href = result.data.dataUrl;
+                link.download = `${itemNumber}.webp`;
+                link.click();
+            }
+        }
+
+        function downloadAll() {
+            conversionResults
+                .filter(r => r.success)
+                .forEach(result => {
+                    setTimeout(() => downloadSingle(result.itemNumber), 100);
+                });
+        }
+
+        function clearAll() {
+            document.getElementById('itemNumbers').value = '';
+            document.getElementById('progressSection').classList.remove('show');
+            document.getElementById('downloadBtn').style.display = 'none';
+            conversionResults = [];
+        }
+    </script>
+</body>
+</html>
