@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Batch Image Converter - WebP</title>
+    <title>Multi-Brand Batch Image Converter</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -17,7 +13,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -30,22 +26,38 @@
             padding: 30px;
             text-align: center;
         }
-        .header h1 {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-        .content {
-            padding: 30px;
-        }
+        .header h1 { font-size: 2em; margin-bottom: 10px; }
+        .content { padding: 30px; }
         .input-section {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
         }
+        .brand-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .brand-option {
+            padding: 15px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .brand-option:hover { border-color: #667eea; transform: translateY(-2px); }
+        .brand-option.selected {
+            border-color: #667eea;
+            background: #e8eaf6;
+            font-weight: bold;
+        }
         textarea {
             width: 100%;
-            min-height: 200px;
+            min-height: 300px;
             padding: 15px;
             border: 2px solid #ddd;
             border-radius: 8px;
@@ -68,37 +80,13 @@
             transition: all 0.3s;
             font-weight: 600;
         }
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-        }
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .progress-section {
-            margin-top: 30px;
-            display: none;
-        }
-        .progress-section.show {
-            display: block;
-        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; transform: translateY(-2px); }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .progress-section { margin-top: 30px; display: none; }
+        .progress-section.show { display: block; }
         .progress-bar {
             width: 100%;
             height: 30px;
@@ -129,42 +117,23 @@
             border-radius: 10px;
             text-align: center;
         }
-        .stat-value {
-            font-size: 2em;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .stat-label {
-            color: #6c757d;
-            font-size: 0.9em;
-        }
+        .stat-value { font-size: 2em; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { color: #6c757d; font-size: 0.9em; }
         .results-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            font-size: 14px;
         }
-        .results-table th,
-        .results-table td {
-            padding: 12px;
+        .results-table th, .results-table td {
+            padding: 10px;
             text-align: left;
             border-bottom: 1px solid #dee2e6;
         }
-        .results-table th {
-            background: #f8f9fa;
-            font-weight: 600;
-        }
-        .status-success {
-            color: #28a745;
-            font-weight: bold;
-        }
-        .status-failed {
-            color: #dc3545;
-            font-weight: bold;
-        }
-        .status-pending {
-            color: #ffc107;
-            font-weight: bold;
-        }
+        .results-table th { background: #f8f9fa; font-weight: 600; }
+        .status-success { color: #28a745; font-weight: bold; }
+        .status-failed { color: #dc3545; font-weight: bold; }
+        .status-pending { color: #ffc107; font-weight: bold; }
         .log-section {
             background: #1e1e1e;
             color: #00ff00;
@@ -176,27 +145,70 @@
             overflow-y: auto;
             margin-top: 20px;
         }
-        .log-entry {
-            margin-bottom: 5px;
+        .log-entry { margin-bottom: 5px; }
+        .quick-load {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
         }
+        .quick-load-btn {
+            padding: 8px 16px;
+            background: #e8eaf6;
+            border: 1px solid #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .quick-load-btn:hover { background: #667eea; color: white; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Batch Image to WebP Converter</h1>
-            <p>Convert multiple product images to WebP format automatically</p>
+            <h1>🚀 Multi-Brand Batch Image Converter</h1>
+            <p>Convert 280+ product images from 6 brands to WebP format</p>
         </div>
         
         <div class="content">
             <div class="input-section">
+                <h3>🏢 Select Brand Website</h3>
+                <div class="brand-selector">
+                    <div class="brand-option selected" data-brand="johnsens" onclick="selectBrand('johnsens')">
+                        <strong>Johnsen's</strong><br>
+                        <small>johnsens.com</small>
+                    </div>
+                    <div class="brand-option" data-brand="bluemagic" onclick="selectBrand('bluemagic')">
+                        <strong>Blue Magic</strong><br>
+                        <small>bluemagicusa.com</small>
+                    </div>
+                    <div class="brand-option" data-brand="quiksteel" onclick="selectBrand('quiksteel')">
+                        <strong>QuikSteel</strong><br>
+                        <small>quiksteel.com</small>
+                    </div>
+                    <div class="brand-option" data-brand="purecitrus" onclick="selectBrand('purecitrus')">
+                        <strong>Pure Citrus</strong><br>
+                        <small>purecitrus.com</small>
+                    </div>
+                    <div class="brand-option" data-brand="turbo108" onclick="selectBrand('turbo108')">
+                        <strong>Turbo 108</strong><br>
+                        <small>turbo108.com</small>
+                    </div>
+                    <div class="brand-option" data-brand="sprayx" onclick="selectBrand('sprayx')">
+                        <strong>Spray-X</strong><br>
+                        <small>spray-x.com</small>
+                    </div>
+                </div>
+
+                <h3>⚡ Quick Load All Items</h3>
+                <div class="quick-load">
+                    <button class="quick-load-btn" onclick="loadAllItems()">Load ALL 280 Items</button>
+                    <button class="quick-load-btn" onclick="loadJohnsensItems()">Johnsen's Only (200+)</button>
+                    <button class="quick-load-btn" onclick="loadBlueMagicItems()">Blue Magic Only (30+)</button>
+                </div>
+
                 <h3>📋 Item Numbers (One per line)</h3>
-                <textarea id="itemNumbers" placeholder="Enter item numbers, one per line:
-2212
-2224
-2232
-5012
-4641"></textarea>
+                <textarea id="itemNumbers" placeholder="Enter item numbers, one per line, or use Quick Load buttons above"></textarea>
                 
                 <div class="controls">
                     <button class="btn-primary" onclick="startBatchConversion()">
@@ -240,29 +252,363 @@
                 <div class="log-section" id="logSection"></div>
                 
                 <h3>📋 Results</h3>
-                <table class="results-table" id="resultsTable">
-                    <thead>
-                        <tr>
-                            <th>Item #</th>
-                            <th>Status</th>
-                            <th>Size</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultsBody"></tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="results-table" id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Item #</th>
+                                <th>Brand</th>
+                                <th>Status</th>
+                                <th>Size</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://image-to-webp-converter-production.up.railway.app/convert';
-        const JOHNSENS_BASE = 'https://www.johnsens.com';
         
+        const BRAND_URLS = {
+            johnsens: 'https://www.johnsens.com',
+            bluemagic: 'https://www.bluemagicusa.com',
+            quiksteel: 'https://www.quiksteel.com',
+            purecitrus: 'https://www.purecitrus.com',
+            turbo108: 'https://www.turbo108.com',
+            sprayx: 'https://www.spray-x.com'
+        };
+        
+        let selectedBrand = 'johnsens';
         let conversionResults = [];
         let isConverting = false;
 
-        function log(message, type = 'info') {
+        // ALL 280 ITEMS FROM PDF
+        const ALL_ITEMS = `2212
+2224
+2232
+2234
+2241
+2255
+5012
+5032
+5034
+5055
+7012-6
+7032
+7055
+4641
+4641C-55
+4641NC
+4642
+4642-55
+4642C
+4642NC
+4720
+4724
+4600
+4607
+4750
+4644
+4645
+4721
+4725
+2424
+2612
+2612-55
+2812
+2812-8
+2813
+2813-55
+2855
+2912
+2912-55
+2932
+4250
+4610
+4611
+2512
+2512-8
+2512-55
+2532
+4617
+4617-55
+2300
+2301
+4555
+4602
+4612
+4603
+4604
+4723
+5593
+5594
+5596
+4656
+4679
+4679-8
+4684
+4684-8
+4684-55
+4685-6
+4688
+4688-8
+4688-55
+4690
+4695
+4695-6
+4608
+4609
+4609-55
+4624
+4624-8
+4624-55
+4625
+5525
+4626
+4618
+4618-55
+4917
+4917-8
+4917-55
+4918
+4605
+4615
+4606
+2940
+2941
+2942
+2943
+2944
+2952
+2955
+2962
+2962-55
+2965
+3282
+5000
+5100
+5101
+5155
+6732
+6752
+6762
+6312
+6315
+6335
+6344
+6345-TC
+6313
+6614
+6331
+6123
+6850
+6400
+6610
+6401
+6611
+6402
+6412
+6407
+EZF-1
+EZF-2
+EZF2-CD
+EZF2-FD
+6708-6
+6710-6
+6711
+6808-6
+6755
+6812-6
+6813-6
+6814
+6855
+6816-6
+6817-6
+6818
+6857
+6822-6
+6823-6
+6824
+6856
+6830
+6846
+6860
+6860UV
+6710UV-6
+6812UV-6
+6813UV-6
+6816UV-6
+6817UV-6
+6822UV-6
+6823UV-6
+6862
+6862UV
+6846UV
+6915
+6916
+6912-6
+6913
+6955
+6542
+6544
+6545-6
+6555
+6644
+6645-6
+6574
+6564
+6540
+6615
+6424
+6425
+6434
+6435
+6725
+6849
+8013
+8014
+8015
+8325
+8326
+8327
+8328
+8329
+8939
+8960
+90038
+90051
+90081
+513024
+513025
+519331
+3210
+841-06
+900-06
+909-06
+910-06R
+912-06
+914-06
+800-06
+850-06
+855-06
+860-06
+NA110
+NA1110
+NA115
+NA1115
+NA116
+NA1116
+NA117
+NA1117
+NA118
+NA1118
+NA119
+NA1119
+NA127
+NA1127
+NA128
+NA1128
+NA250
+725-06
+100-12
+200-06
+230-06
+300-12
+400-06
+500-06
+550-02
+NA647
+680-06
+707-06
+750-06
+778-06
+781-06
+875-06
+1008-24
+1116-24
+12A-6
+5215-12
+BOT55TRI
+BOT58TRI
+BOT59TRI
+NA30
+NA31
+NA32
+NA34-06
+NA35
+NA37
+NA38
+NA301
+NA302
+6002TRI-12
+6002TRI-24
+6002ADTRI
+6004TRI
+6022KTRI
+6502TRI-12
+6502TRI-24
+6522KTRI
+16001-6
+16002TRI
+16502TRI
+16532TRI
+16562TRI
+16552TRI
+17002TRI
+17502TRI
+18003TRI
+18022KTRI
+8024
+NA90-6
+NA93-6
+NA200
+NA228-6
+NA229-6
+NA230-6
+SPX10GC
+SPX15GC
+SPX19GC
+SPX19-3PC
+SPX19GC-QP`;
+
+        function selectBrand(brand) {
+            selectedBrand = brand;
+            document.querySelectorAll('.brand-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelector(`[data-brand="${brand}"]`).classList.add('selected');
+            log(`Selected brand: ${brand.toUpperCase()}`);
+        }
+
+        function loadAllItems() {
+            document.getElementById('itemNumbers').value = ALL_ITEMS;
+            log(`Loaded all 280 items`);
+        }
+
+        function loadJohnsensItems() {
+            const johnsensItems = ALL_ITEMS.split('\n').filter(item => 
+                !item.startsWith('NA') && !item.startsWith('SPX') && 
+                !item.includes('TRI') && !item.startsWith('BOT')
+            ).join('\n');
+            document.getElementById('itemNumbers').value = johnsensItems;
+            selectBrand('johnsens');
+            log(`Loaded Johnsen's items`);
+        }
+
+        function loadBlueMagicItems() {
+            const blueMagicItems = ALL_ITEMS.split('\n').filter(item => 
+                item.match(/^(100|200|230|300|400|500|550|680|707|725|750|778|781|800|841|850|855|860|875|900|909|910|912|914)-/)
+            ).join('\n');
+            document.getElementById('itemNumbers').value = blueMagicItems;
+            selectBrand('bluemagic');
+            log(`Loaded Blue Magic items`);
+        }
+
+        function log(message) {
             const logSection = document.getElementById('logSection');
             const timestamp = new Date().toLocaleTimeString();
             const entry = document.createElement('div');
@@ -284,12 +630,13 @@
             progressFill.textContent = progress + '%';
         }
 
-        function addResultRow(itemNumber, status, size, webpData) {
+        function addResultRow(itemNumber, brand, status, size) {
             const tbody = document.getElementById('resultsBody');
             const row = tbody.insertRow();
             
             row.innerHTML = `
                 <td>${itemNumber}</td>
+                <td>${brand}</td>
                 <td class="status-${status}">${status.toUpperCase()}</td>
                 <td>${size || '-'}</td>
                 <td>
@@ -300,17 +647,17 @@
             `;
         }
 
-        async function searchProductImage(itemNumber) {
-            // For demo, using a pattern-based approach
-            // In production, you'd scrape the actual website
-            const imageUrl = `https://cdn11.bigcommerce.com/s-fg8rw4u4uq/images/stencil/1280x1280/products/32/189/${itemNumber}__05798.1515075711.png?c=2`;
+        async function searchProductImage(itemNumber, brand) {
+            // Pattern-based image URL construction
+            const baseUrl = 'https://cdn11.bigcommerce.com/s-fg8rw4u4uq/images/stencil/1280x1280/products';
+            const imageUrl = `${baseUrl}/32/189/${itemNumber}__05798.1515075711.png?c=2`;
             return imageUrl;
         }
 
-        async function convertImage(itemNumber) {
+        async function convertImage(itemNumber, brand) {
             try {
-                log(`🔍 Searching for item ${itemNumber}...`);
-                const imageUrl = await searchProductImage(itemNumber);
+                log(`🔍 Searching for ${brand.toUpperCase()} item ${itemNumber}...`);
+                const imageUrl = await searchProductImage(itemNumber, brand);
                 
                 log(`🔄 Converting ${itemNumber} to WebP...`);
                 const response = await fetch(API_URL, {
@@ -323,13 +670,13 @@
                 
                 if (data.success) {
                     log(`✅ Successfully converted ${itemNumber}`);
-                    return { success: true, data, itemNumber };
+                    return { success: true, data, itemNumber, brand };
                 } else {
                     throw new Error('Conversion failed');
                 }
             } catch (error) {
                 log(`❌ Failed to convert ${itemNumber}: ${error.message}`);
-                return { success: false, error: error.message, itemNumber };
+                return { success: false, error: error.message, itemNumber, brand };
             }
         }
 
@@ -342,19 +689,18 @@
                 .filter(line => line.length > 0);
             
             if (items.length === 0) {
-                alert('Please enter at least one item number');
+                alert('Please enter at least one item number or use Quick Load');
                 return;
             }
             
             isConverting = true;
             conversionResults = [];
             
-            // Show progress section
             document.getElementById('progressSection').classList.add('show');
             document.getElementById('resultsBody').innerHTML = '';
             document.getElementById('logSection').innerHTML = '';
             
-            log(`🚀 Starting batch conversion for ${items.length} items...`);
+            log(`🚀 Starting batch conversion for ${items.length} items from ${selectedBrand.toUpperCase()}...`);
             
             let success = 0, failed = 0;
             
@@ -362,22 +708,20 @@
                 const itemNumber = items[i];
                 updateStats(items.length, success, failed, items.length - success - failed);
                 
-                const result = await convertImage(itemNumber);
+                const result = await convertImage(itemNumber, selectedBrand);
                 conversionResults.push(result);
                 
                 if (result.success) {
                     success++;
-                    addResultRow(itemNumber, 'success', 
-                        (result.data.size / 1024).toFixed(2) + ' KB', 
-                        result.data);
+                    addResultRow(itemNumber, selectedBrand, 'success', 
+                        (result.data.size / 1024).toFixed(2) + ' KB');
                 } else {
                     failed++;
-                    addResultRow(itemNumber, 'failed', null, null);
+                    addResultRow(itemNumber, selectedBrand, 'failed', null);
                 }
                 
                 updateStats(items.length, success, failed, items.length - success - failed);
                 
-                // Delay between requests
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
             
@@ -403,8 +747,8 @@
         function downloadAll() {
             conversionResults
                 .filter(r => r.success)
-                .forEach(result => {
-                    setTimeout(() => downloadSingle(result.itemNumber), 100);
+                .forEach((result, index) => {
+                    setTimeout(() => downloadSingle(result.itemNumber), index * 100);
                 });
         }
 
