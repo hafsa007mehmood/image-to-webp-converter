@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to WebP Converter - Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            display: none;
+        }
+        .result.show {
+            display: block;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #f44336;
+        }
+        .image-preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .image-preview img {
+            max-width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .download-btn {
+            background: #2196F3;
+            margin-top: 10px;
+        }
+        .download-btn:hover {
+            background: #0b7dda;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ Image to WebP Converter</h1>
+        
+        <div class="info">
+            <strong>Test Image URL:</strong><br>
+            https://cdn11.bigcommerce.com/s-fg8rw4u4uq/images/stencil/1280x1280/products/32/189/2212__05798.1515075711.png?c=2
+        </div>
+
+        <div class="input-group">
+            <label for="imageUrl">Image URL:</label>
+            <input type="text" id="imageUrl" placeholder="Enter image URL (PNG/JPG/JPEG)" 
+                   value="https://cdn11.bigcommerce.com/s-fg8rw4u4uq/images/stencil/1280x1280/products/32/189/2212__05798.1515075711.png?c=2">
+        </div>
+
+        <div class="input-group">
+            <label for="quality">Quality (1-100):</label>
+            <input type="number" id="quality" min="1" max="100" value="80">
+        </div>
+
+        <button id="convertBtn" onclick="convertImage()">Convert to WebP</button>
+
+        <div id="result" class="result">
+            <h3 id="resultTitle"></h3>
+            <p id="resultMessage"></p>
+            <div id="imagePreview" class="image-preview"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://image-to-webp-converter-production.up.railway.app/convert';
+
+        async function convertImage() {
+            const imageUrl = document.getElementById('imageUrl').value;
+            const quality = document.getElementById('quality').value;
+            const resultDiv = document.getElementById('result');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const imagePreview = document.getElementById('imagePreview');
+            const convertBtn = document.getElementById('convertBtn');
+
+            // Validation
+            if (!imageUrl) {
+                alert('Please enter an image URL');
+                return;
+            }
+
+            // Reset result
+            resultDiv.classList.remove('show');
+            imagePreview.innerHTML = '';
+            convertBtn.disabled = true;
+            convertBtn.textContent = 'Converting...';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        imageUrl: imageUrl,
+                        quality: parseInt(quality)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultTitle.textContent = '✅ Conversion Successful!';
+                    resultTitle.className = 'success';
+                    resultMessage.innerHTML = `
+                        <strong>Format:</strong> ${data.format}<br>
+                        <strong>Size:</strong> ${(data.size / 1024).toFixed(2)} KB
+                    `;
+
+                    // Show preview
+                    imagePreview.innerHTML = `
+                        <img src="${data.dataUrl}" alt="Converted WebP Image">
+                        <br>
+                        <button class="download-btn" onclick="downloadImage('${data.dataUrl}')">
+                            Download WebP Image
+                        </button>
+                    `;
+                } else {
+                    throw new Error(data.message || 'Conversion failed');
+                }
+
+            } catch (error) {
+                resultTitle.textContent = '❌ Conversion Failed';
+                resultTitle.className = 'error';
+                resultMessage.textContent = error.message;
+            } finally {
+                resultDiv.classList.add('show');
+                convertBtn.disabled = false;
+                convertBtn.textContent = 'Convert to WebP';
+            }
+        }
+
+        function downloadImage(dataUrl) {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = 'converted-image.webp';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
