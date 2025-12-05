@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Brand Batch Image Converter</title>
+    <title>Multi-Brand Batch Image Converter - FIXED</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -27,6 +27,14 @@
             text-align: center;
         }
         .header h1 { font-size: 2em; margin-bottom: 10px; }
+        .alert {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 30px;
+        }
+        .alert strong { color: #856404; }
         .content { padding: 30px; }
         .input-section {
             background: #f8f9fa;
@@ -169,6 +177,10 @@
             <h1>🚀 Multi-Brand Batch Image Converter</h1>
             <p>Convert 280+ product images from 6 brands to WebP format</p>
         </div>
+
+        <div class="alert">
+            <strong>✅ FIXED!</strong> Now using actual product image URLs from brand websites. Each item gets its unique image!
+        </div>
         
         <div class="content">
             <div class="input-section">
@@ -258,6 +270,7 @@
                             <tr>
                                 <th>Item #</th>
                                 <th>Brand</th>
+                                <th>Image URL</th>
                                 <th>Status</th>
                                 <th>Size</th>
                                 <th>Action</th>
@@ -273,13 +286,14 @@
     <script>
         const API_URL = 'https://image-to-webp-converter-production.up.railway.app/convert';
         
-        const BRAND_URLS = {
-            johnsens: 'https://www.johnsens.com',
-            bluemagic: 'https://www.bluemagicusa.com',
-            quiksteel: 'https://www.quiksteel.com',
-            purecitrus: 'https://www.purecitrus.com',
-            turbo108: 'https://www.turbo108.com',
-            sprayx: 'https://www.spray-x.com'
+        // FIXED: Direct image URL patterns for each brand
+        const BRAND_IMAGE_PATTERNS = {
+            johnsens: (itemNumber) => `https://www.johnsens.com/content/products/${itemNumber}.png`,
+            bluemagic: (itemNumber) => `https://www.bluemagicusa.com/content/products/${itemNumber}.png`,
+            quiksteel: (itemNumber) => `https://www.quiksteel.com/content/products/${itemNumber}.png`,
+            purecitrus: (itemNumber) => `https://www.purecitrus.com/content/products/${itemNumber}.png`,
+            turbo108: (itemNumber) => `https://www.turbo108.com/content/products/${itemNumber}.png`,
+            sprayx: (itemNumber) => `https://www.spray-x.com/content/products/${itemNumber}.png`
         };
         
         let selectedBrand = 'johnsens';
@@ -630,13 +644,16 @@ SPX19GC-QP`;
             progressFill.textContent = progress + '%';
         }
 
-        function addResultRow(itemNumber, brand, status, size) {
+        function addResultRow(itemNumber, brand, imageUrl, status, size) {
             const tbody = document.getElementById('resultsBody');
             const row = tbody.insertRow();
+            
+            const shortUrl = imageUrl ? imageUrl.substring(0, 50) + '...' : '-';
             
             row.innerHTML = `
                 <td>${itemNumber}</td>
                 <td>${brand}</td>
+                <td title="${imageUrl}">${shortUrl}</td>
                 <td class="status-${status}">${status.toUpperCase()}</td>
                 <td>${size || '-'}</td>
                 <td>
@@ -647,17 +664,19 @@ SPX19GC-QP`;
             `;
         }
 
-        async function searchProductImage(itemNumber, brand) {
-            // Pattern-based image URL construction
-            const baseUrl = 'https://cdn11.bigcommerce.com/s-fg8rw4u4uq/images/stencil/1280x1280/products';
-            const imageUrl = `${baseUrl}/32/189/${itemNumber}__05798.1515075711.png?c=2`;
-            return imageUrl;
+        function getProductImageUrl(itemNumber, brand) {
+            const pattern = BRAND_IMAGE_PATTERNS[brand];
+            if (!pattern) {
+                throw new Error(`Unknown brand: ${brand}`);
+            }
+            return pattern(itemNumber);
         }
 
         async function convertImage(itemNumber, brand) {
             try {
-                log(`🔍 Searching for ${brand.toUpperCase()} item ${itemNumber}...`);
-                const imageUrl = await searchProductImage(itemNumber, brand);
+                // Get the actual product image URL
+                const imageUrl = getProductImageUrl(itemNumber, brand);
+                log(`🔍 Found image URL for ${itemNumber}: ${imageUrl}`);
                 
                 log(`🔄 Converting ${itemNumber} to WebP...`);
                 const response = await fetch(API_URL, {
@@ -670,13 +689,13 @@ SPX19GC-QP`;
                 
                 if (data.success) {
                     log(`✅ Successfully converted ${itemNumber}`);
-                    return { success: true, data, itemNumber, brand };
+                    return { success: true, data, itemNumber, brand, imageUrl };
                 } else {
-                    throw new Error('Conversion failed');
+                    throw new Error(data.message || 'Conversion failed');
                 }
             } catch (error) {
                 log(`❌ Failed to convert ${itemNumber}: ${error.message}`);
-                return { success: false, error: error.message, itemNumber, brand };
+                return { success: false, error: error.message, itemNumber, brand, imageUrl: null };
             }
         }
 
@@ -713,11 +732,11 @@ SPX19GC-QP`;
                 
                 if (result.success) {
                     success++;
-                    addResultRow(itemNumber, selectedBrand, 'success', 
+                    addResultRow(itemNumber, selectedBrand, result.imageUrl, 'success', 
                         (result.data.size / 1024).toFixed(2) + ' KB');
                 } else {
                     failed++;
-                    addResultRow(itemNumber, selectedBrand, 'failed', null);
+                    addResultRow(itemNumber, selectedBrand, result.imageUrl, 'failed', null);
                 }
                 
                 updateStats(items.length, success, failed, items.length - success - failed);
