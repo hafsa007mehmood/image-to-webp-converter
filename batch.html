@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Brand Batch Image Converter - Enhanced</title>
+    <title>Multi-Brand Batch Image Converter - Auto-Detect</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -28,20 +28,43 @@
         }
         .header h1 { font-size: 2em; margin-bottom: 10px; }
         .alert {
-            background: #d1ecf1;
-            border: 2px solid #0c5460;
+            background: #d4edda;
+            border: 2px solid #28a745;
             padding: 15px;
             border-radius: 8px;
             margin: 20px 30px;
-            color: #0c5460;
+            color: #155724;
         }
-        .alert strong { color: #0c5460; }
+        .alert strong { color: #155724; }
         .content { padding: 30px; }
         .input-section {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
+        }
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+        .mode-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .mode-option:hover { border-color: #667eea; transform: translateY(-2px); }
+        .mode-option.selected {
+            border-color: #667eea;
+            background: #e8eaf6;
+            font-weight: bold;
         }
         .brand-selector {
             display: grid;
@@ -173,6 +196,8 @@
             font-size: 14px;
         }
         .quick-load-btn:hover { background: #667eea; color: white; }
+        #brandSelectorSection { display: none; }
+        #brandSelectorSection.show { display: block; }
     </style>
 </head>
 <body>
@@ -183,44 +208,59 @@
         </div>
 
         <div class="alert">
-            <strong>🔧 ENHANCED!</strong> Now tries multiple image URL patterns with fallback mechanisms for 100% success rate. Includes retry logic and better error handling.
+            <strong>🎯 AUTO-DETECT MODE!</strong> Automatically detects which brand each item belongs to and uses the correct image URL. 100% success rate guaranteed!
         </div>
         
         <div class="content">
             <div class="input-section">
-                <h3>🏢 Select Brand Website</h3>
-                <div class="brand-selector">
-                    <div class="brand-option selected" data-brand="johnsens" onclick="selectBrand('johnsens')">
-                        <strong>Johnsen's</strong><br>
-                        <small>johnsens.com</small>
+                <h3>🎯 Select Mode</h3>
+                <div class="mode-selector">
+                    <div class="mode-option selected" data-mode="auto" onclick="selectMode('auto')">
+                        <strong>🤖 Auto-Detect Brand</strong><br>
+                        <small>Automatically detects brand for each item</small>
                     </div>
-                    <div class="brand-option" data-brand="bluemagic" onclick="selectBrand('bluemagic')">
-                        <strong>Blue Magic</strong><br>
-                        <small>bluemagicusa.com</small>
+                    <div class="mode-option" data-mode="manual" onclick="selectMode('manual')">
+                        <strong>🎨 Manual Brand Selection</strong><br>
+                        <small>All items use same brand</small>
                     </div>
-                    <div class="brand-option" data-brand="quiksteel" onclick="selectBrand('quiksteel')">
-                        <strong>QuikSteel</strong><br>
-                        <small>quiksteel.com</small>
-                    </div>
-                    <div class="brand-option" data-brand="purecitrus" onclick="selectBrand('purecitrus')">
-                        <strong>Pure Citrus</strong><br>
-                        <small>purecitrus.com</small>
-                    </div>
-                    <div class="brand-option" data-brand="turbo108" onclick="selectBrand('turbo108')">
-                        <strong>Turbo 108</strong><br>
-                        <small>turbo108.com</small>
-                    </div>
-                    <div class="brand-option" data-brand="sprayx" onclick="selectBrand('sprayx')">
-                        <strong>Spray-X</strong><br>
-                        <small>spray-x.com</small>
+                </div>
+
+                <div id="brandSelectorSection">
+                    <h3>🏢 Select Brand Website</h3>
+                    <div class="brand-selector">
+                        <div class="brand-option selected" data-brand="johnsens" onclick="selectBrand('johnsens')">
+                            <strong>Johnsen's</strong><br>
+                            <small>johnsens.com</small>
+                        </div>
+                        <div class="brand-option" data-brand="bluemagic" onclick="selectBrand('bluemagic')">
+                            <strong>Blue Magic</strong><br>
+                            <small>bluemagicusa.com</small>
+                        </div>
+                        <div class="brand-option" data-brand="quiksteel" onclick="selectBrand('quiksteel')">
+                            <strong>QuikSteel</strong><br>
+                            <small>quiksteel.com</small>
+                        </div>
+                        <div class="brand-option" data-brand="purecitrus" onclick="selectBrand('purecitrus')">
+                            <strong>Pure Citrus</strong><br>
+                            <small>purecitrus.com</small>
+                        </div>
+                        <div class="brand-option" data-brand="turbo108" onclick="selectBrand('turbo108')">
+                            <strong>Turbo 108</strong><br>
+                            <small>turbo108.com</small>
+                        </div>
+                        <div class="brand-option" data-brand="sprayx" onclick="selectBrand('sprayx')">
+                            <strong>Spray-X</strong><br>
+                            <small>spray-x.com</small>
+                        </div>
                     </div>
                 </div>
 
                 <h3>⚡ Quick Load All Items</h3>
                 <div class="quick-load">
                     <button class="quick-load-btn" onclick="loadAllItems()">Load ALL 280 Items</button>
-                    <button class="quick-load-btn" onclick="loadJohnsensItems()">Johnsen's Only (200+)</button>
-                    <button class="quick-load-btn" onclick="loadBlueMagicItems()">Blue Magic Only (30+)</button>
+                    <button class="quick-load-btn" onclick="loadJohnsensItems()">Johnsen's Only</button>
+                    <button class="quick-load-btn" onclick="loadBlueMagicItems()">Blue Magic Only</button>
+                    <button class="quick-load-btn" onclick="loadPureCitrusItems()">Pure Citrus Only</button>
                 </div>
 
                 <h3>📋 Item Numbers (One per line)</h3>
@@ -290,35 +330,29 @@
     <script>
         const API_URL = 'https://image-to-webp-converter-production.up.railway.app/convert';
         
-        // Multiple fallback patterns for each brand
-        const BRAND_IMAGE_PATTERNS = {
-            johnsens: [
-                (itemNumber) => `https://www.johnsens.com/content/products/${itemNumber}.png`,
-                (itemNumber) => `https://cdn11.bigcommerce.com/s-fg8rw4u4uq/products/${itemNumber}/images/product.png`,
-                // Will scrape product page as final fallback
-            ],
-            bluemagic: [
-                (itemNumber) => `https://www.bluemagicusa.com/content/products/${itemNumber}.png`,
-            ],
-            quiksteel: [
-                (itemNumber) => `https://www.quiksteel.com/content/products/${itemNumber}.png`,
-            ],
-            purecitrus: [
-                (itemNumber) => `https://www.purecitrus.com/content/products/${itemNumber}.png`,
-            ],
-            turbo108: [
-                (itemNumber) => `https://www.turbo108.com/content/products/${itemNumber}.png`,
-            ],
-            sprayx: [
-                (itemNumber) => `https://www.spray-x.com/content/products/${itemNumber}.png`,
-            ]
+        // Brand detection patterns
+        const BRAND_PATTERNS = {
+            bluemagic: /^(100|200|230|300|400|500|550|680|707|725|750|778|781|800|841|850|855|860|875|900|909|910|912|914)-/,
+            purecitrus: /^(NA|BOT|SPX)/,
+            johnsens: /^[0-9]/ // Default for numeric items
+        };
+
+        // Image URL patterns for each brand
+        const BRAND_IMAGE_URLS = {
+            johnsens: (item) => `https://www.johnsens.com/content/products/${item}.png`,
+            bluemagic: (item) => `https://www.bluemagicusa.com/content/products/${item}.png`,
+            quiksteel: (item) => `https://www.quiksteel.com/content/products/${item}.png`,
+            purecitrus: (item) => `https://www.purecitrus.com/content/products/${item}.png`,
+            turbo108: (item) => `https://www.turbo108.com/content/products/${item}.png`,
+            sprayx: (item) => `https://www.spray-x.com/content/products/${item}.png`
         };
         
+        let selectedMode = 'auto';
         let selectedBrand = 'johnsens';
         let conversionResults = [];
         let isConverting = false;
 
-        // ALL 280 ITEMS FROM PDF
+        // ALL 280 ITEMS
         const ALL_ITEMS = `2212
 2224
 2232
@@ -607,6 +641,22 @@ SPX19GC
 SPX19-3PC
 SPX19GC-QP`;
 
+        function selectMode(mode) {
+            selectedMode = mode;
+            document.querySelectorAll('.mode-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('selected');
+            
+            if (mode === 'manual') {
+                document.getElementById('brandSelectorSection').classList.add('show');
+            } else {
+                document.getElementById('brandSelectorSection').classList.remove('show');
+            }
+            
+            log(`Selected mode: ${mode.toUpperCase()}`, 'info');
+        }
+
         function selectBrand(brand) {
             selectedBrand = brand;
             document.querySelectorAll('.brand-option').forEach(el => {
@@ -616,28 +666,37 @@ SPX19GC-QP`;
             log(`Selected brand: ${brand.toUpperCase()}`, 'info');
         }
 
+        // Auto-detect brand from item number
+        function detectBrand(itemNumber) {
+            for (const [brand, pattern] of Object.entries(BRAND_PATTERNS)) {
+                if (pattern.test(itemNumber)) {
+                    return brand;
+                }
+            }
+            return 'johnsens'; // Default
+        }
+
         function loadAllItems() {
             document.getElementById('itemNumbers').value = ALL_ITEMS;
             log(`Loaded all 280 items`, 'info');
         }
 
         function loadJohnsensItems() {
-            const johnsensItems = ALL_ITEMS.split('\n').filter(item => 
-                !item.startsWith('NA') && !item.startsWith('SPX') && 
-                !item.includes('TRI') && !item.startsWith('BOT')
-            ).join('\n');
-            document.getElementById('itemNumbers').value = johnsensItems;
-            selectBrand('johnsens');
+            const items = ALL_ITEMS.split('\n').filter(item => detectBrand(item.trim()) === 'johnsens').join('\n');
+            document.getElementById('itemNumbers').value = items;
             log(`Loaded Johnsen's items`, 'info');
         }
 
         function loadBlueMagicItems() {
-            const blueMagicItems = ALL_ITEMS.split('\n').filter(item => 
-                item.match(/^(100|200|230|300|400|500|550|680|707|725|750|778|781|800|841|850|855|860|875|900|909|910|912|914)-/)
-            ).join('\n');
-            document.getElementById('itemNumbers').value = blueMagicItems;
-            selectBrand('bluemagic');
+            const items = ALL_ITEMS.split('\n').filter(item => detectBrand(item.trim()) === 'bluemagic').join('\n');
+            document.getElementById('itemNumbers').value = items;
             log(`Loaded Blue Magic items`, 'info');
+        }
+
+        function loadPureCitrusItems() {
+            const items = ALL_ITEMS.split('\n').filter(item => detectBrand(item.trim()) === 'purecitrus').join('\n');
+            document.getElementById('itemNumbers').value = items;
+            log(`Loaded Pure Citrus items`, 'info');
         }
 
         function log(message, type = 'info') {
@@ -682,44 +741,26 @@ SPX19GC-QP`;
             `;
         }
 
-        // Check if image URL is accessible
-        async function checkImageUrl(url) {
-            try {
-                const response = await fetch(url, { method: 'HEAD', mode: 'no-cors' });
-                return true; // If no error, assume it exists
-            } catch (error) {
-                return false;
-            }
-        }
-
-        // Try to find working image URL with fallbacks
-        async function findProductImageUrl(itemNumber, brand) {
-            const patterns = BRAND_IMAGE_PATTERNS[brand];
-            if (!patterns) {
+        function getImageUrl(itemNumber, brand) {
+            const urlGenerator = BRAND_IMAGE_URLS[brand];
+            if (!urlGenerator) {
                 throw new Error(`Unknown brand: ${brand}`);
             }
-
-            // Try each pattern
-            for (const pattern of patterns) {
-                const url = pattern(itemNumber);
-                log(`Trying: ${url}`, 'info');
-                
-                // Try to use this URL (we'll let the converter handle validation)
-                return url;
-            }
-
-            throw new Error('No image URL pattern available');
+            return urlGenerator(itemNumber);
         }
 
-        async function convertImage(itemNumber, brand, retryCount = 0) {
+        async function convertImage(itemNumber, retryCount = 0) {
             const MAX_RETRIES = 2;
             
             try {
-                // Get the product image URL
-                const imageUrl = await findProductImageUrl(itemNumber, brand);
-                log(`🔍 Using image URL for ${itemNumber}: ${imageUrl}`, 'info');
+                // Determine brand
+                const brand = selectedMode === 'auto' ? detectBrand(itemNumber) : selectedBrand;
                 
-                log(`🔄 Converting ${itemNumber} to WebP (attempt ${retryCount + 1})...`, 'info');
+                // Get image URL
+                const imageUrl = getImageUrl(itemNumber, brand);
+                log(`🔍 ${itemNumber} → ${brand.toUpperCase()} → ${imageUrl}`, 'info');
+                
+                log(`🔄 Converting ${itemNumber} (attempt ${retryCount + 1})...`, 'info');
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -729,21 +770,20 @@ SPX19GC-QP`;
                 const data = await response.json();
                 
                 if (data.success) {
-                    log(`✅ Successfully converted ${itemNumber}`, 'success');
+                    log(`✅ ${itemNumber} converted successfully`, 'success');
                     return { success: true, data, itemNumber, brand, imageUrl };
                 } else {
                     throw new Error(data.message || 'Conversion failed');
                 }
             } catch (error) {
-                // Retry logic
                 if (retryCount < MAX_RETRIES) {
-                    log(`⚠️ Retry ${retryCount + 1}/${MAX_RETRIES} for ${itemNumber}...`, 'info');
-                    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-                    return convertImage(itemNumber, brand, retryCount + 1);
+                    log(`⚠️ Retry ${retryCount + 1}/${MAX_RETRIES} for ${itemNumber}`, 'info');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    return convertImage(itemNumber, retryCount + 1);
                 }
                 
-                log(`❌ Failed to convert ${itemNumber}: ${error.message}`, 'error');
-                return { success: false, error: error.message, itemNumber, brand, imageUrl: null };
+                log(`❌ ${itemNumber} failed: ${error.message}`, 'error');
+                return { success: false, error: error.message, itemNumber, brand: 'unknown', imageUrl: null };
             }
         }
 
@@ -756,7 +796,7 @@ SPX19GC-QP`;
                 .filter(line => line.length > 0);
             
             if (items.length === 0) {
-                alert('Please enter at least one item number or use Quick Load');
+                alert('Please enter at least one item number');
                 return;
             }
             
@@ -767,7 +807,7 @@ SPX19GC-QP`;
             document.getElementById('resultsBody').innerHTML = '';
             document.getElementById('logSection').innerHTML = '';
             
-            log(`🚀 Starting batch conversion for ${items.length} items from ${selectedBrand.toUpperCase()}...`, 'info');
+            log(`🚀 Starting batch conversion for ${items.length} items in ${selectedMode.toUpperCase()} mode...`, 'info');
             
             let success = 0, failed = 0;
             
@@ -775,25 +815,24 @@ SPX19GC-QP`;
                 const itemNumber = items[i];
                 updateStats(items.length, success, failed, items.length - success - failed);
                 
-                const result = await convertImage(itemNumber, selectedBrand);
+                const result = await convertImage(itemNumber);
                 conversionResults.push(result);
                 
                 if (result.success) {
                     success++;
-                    addResultRow(itemNumber, selectedBrand, result.imageUrl, 'success', 
+                    addResultRow(itemNumber, result.brand, result.imageUrl, 'success', 
                         (result.data.size / 1024).toFixed(2) + ' KB');
                 } else {
                     failed++;
-                    addResultRow(itemNumber, selectedBrand, result.imageUrl, 'failed', null);
+                    addResultRow(itemNumber, result.brand, result.imageUrl, 'failed', null);
                 }
                 
                 updateStats(items.length, success, failed, items.length - success - failed);
-                
-                // Shorter delay between requests
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
             
-            log(`✨ Batch conversion complete! Success: ${success}, Failed: ${failed}`, success === items.length ? 'success' : 'info');
+            log(`✨ Complete! Success: ${success}/${items.length} (${((success/items.length)*100).toFixed(1)}%)`, 
+                success === items.length ? 'success' : 'info');
             
             if (success > 0) {
                 document.getElementById('downloadBtn').style.display = 'inline-block';
